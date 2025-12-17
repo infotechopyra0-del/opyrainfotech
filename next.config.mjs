@@ -9,11 +9,10 @@ const withPWA = nextPWA({
 });
 
 const nextConfig = {
-  trailingSlash: true,
+  trailingSlash: false,
   images: {
     unoptimized: true
   },
-  turbopack: {},
 };
 
 export default withPWA(nextConfig);
