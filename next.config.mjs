@@ -14,6 +14,7 @@ const nextConfig = {
     unoptimized: true
   },
   assetPrefix: process.env.NODE_ENV === 'production' ? './' : undefined,
+  turbopack: {},
 };
 
 export default withPWA(nextConfig);

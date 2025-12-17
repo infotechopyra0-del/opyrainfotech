@@ -220,3 +220,41 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  thead {
+    display: none;
+  }
+  
+  tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 2px solid #fed7aa;
+    border-radius: 0.75rem;
+    background: linear-gradient(to right, #fffbeb, #ffedd5);
+  }
+  
+  tbody td {
+    display: block;
+    text-align: right;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #fed7aa;
+  }
+  
+  tbody td:last-child {
+    border-bottom: none;
+  }
+  
+  tbody td::before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    color: #9a3412;
+  }
+}
