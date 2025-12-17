@@ -3,39 +3,38 @@ import connectDB from '@/lib/mongodb';
 import Admin from '@/models/Admin';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
+
     const { email, password } = await request.json();
 
-    // Validate input
+    // Validation
     if (!email || !password) {
       return NextResponse.json(
-        { success: false, message: 'Email and password are required' },
+        { error: 'Email and password are required' },
         { status: 400 }
       );
     }
 
-    // Connect to database
-    await connectDB();
-
     // Find admin
-    const admin = await Admin.findOne({ email: email.toLowerCase().trim() });
-
+    const admin = await Admin.findOne({ email });
+    
     if (!admin) {
       return NextResponse.json(
-        { success: false, message: 'Invalid email or password' },
+        { error: 'Invalid credentials' },
         { status: 401 }
       );
     }
 
     // Check password
     const isPasswordValid = await admin.comparePassword(password);
-
+    
     if (!isPasswordValid) {
       return NextResponse.json(
-        { success: false, message: 'Invalid email or password' },
+        { error: 'Invalid credentials' },
         { status: 401 }
       );
     }
@@ -44,33 +43,36 @@ export async function POST(request: NextRequest) {
     const token = jwt.sign(
       { 
         id: admin._id, 
-        email: admin.email, 
+        email: admin.email,
         role: admin.role 
       },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    // Create response with cookie
+    // Create response
     const response = NextResponse.json(
-      {
-        success: true,
+      { 
         message: 'Login successful',
         admin: {
+          id: admin._id,
           email: admin.email,
+          name: admin.name,
           role: admin.role
         }
       },
       { status: 200 }
     );
 
-    // Set HTTP-only cookie
-    response.cookies.set('admin-token', token, {
+    // Set cookie
+    response.cookies.set({
+      name: 'admin-token',
+      value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/'
+      path: '/',
     });
 
     return response;
@@ -78,7 +80,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

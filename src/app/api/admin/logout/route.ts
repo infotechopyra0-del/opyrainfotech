@@ -1,13 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
-  const response = NextResponse.json(
-    { success: true, message: 'Logged out successfully' },
-    { status: 200 }
-  );
+export async function POST() {
+  try {
+    const response = NextResponse.json(
+      { message: 'Logout successful' },
+      { status: 200 }
+    );
 
-  // Delete cookie
-  response.cookies.delete('admin-token');
+    // Delete cookie
+    response.cookies.delete('admin-token');
 
-  return response;
+    return response;
+
+  } catch (error) {
+    console.error('Logout error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }

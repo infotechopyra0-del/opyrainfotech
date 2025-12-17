@@ -1,11 +1,20 @@
-import React from 'react';
 import AdminSidebar from '@/components/AdminSidebar';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-export default function AdminDashboardLayout({
+export default async function AdminDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('admin-token')?.value;
+
+  // If not authenticated, redirect to login (server-side)
+  if (!token) {
+    redirect('/admin/login');
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 relative overflow-hidden">
       {/* Animated Background Elements */}

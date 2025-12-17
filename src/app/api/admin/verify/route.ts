@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this';
+const JWT_SECRET = process.env.JWT_SECRET || 'yugsdhjbdbhjdzcbhjkzdhgukdzhgkdfbhjdbhjb';
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,17 +9,19 @@ export async function GET(request: NextRequest) {
 
     if (!token) {
       return NextResponse.json(
-        { success: false, message: 'Not authenticated' },
+        { error: 'Not authenticated' },
         { status: 401 }
       );
     }
 
+    // Verify token
     const decoded = jwt.verify(token, JWT_SECRET) as any;
 
     return NextResponse.json(
-      {
-        success: true,
+      { 
+        authenticated: true,
         admin: {
+          id: decoded.id,
           email: decoded.email,
           role: decoded.role
         }
@@ -29,7 +31,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: 'Invalid token' },
+      { error: 'Invalid token' },
       { status: 401 }
     );
   }

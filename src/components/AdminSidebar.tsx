@@ -17,9 +17,8 @@ export default function AdminSidebar() {
 
   const menuItems: MenuItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
-    { id: 'softwares', label: 'Softwares', icon: Code, href: '/admin/dashboard/softwares' },
     { id: 'portfolio', label: 'Portfolio', icon: FolderKanban, href: '/admin/dashboard/portfolio' },
-    { id: 'quote', label: 'Quote Requests', icon: MessageSquareQuote, href: '/admin/dashboard/quote' },
+    { id: 'quote', label: 'Quote', icon: MessageSquareQuote, href: '/admin/dashboard/quote' },
     { id: 'contacts', label: 'Contacts', icon: Users, href: '/admin/dashboard/contacts' },
     { id: 'hireus', label: 'Hire Us', icon: Briefcase, href: '/admin/dashboard/hireus' },
   ];

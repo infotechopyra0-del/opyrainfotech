@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { toast } from 'sonner'
 
 export default function GetQuotePage() {
-  const [result, setResult] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const services = [
@@ -33,35 +33,95 @@ export default function GetQuotePage() {
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSubmitting(true)
-    setResult("Sending quote request....")
+    // capture the form element reference before any await (React synthetic event pooling)
+    const form = event.currentTarget as HTMLFormElement
+
+    const formData = new FormData(form)
     
-    const formData = new FormData(event.currentTarget)
-    formData.append("access_key", "22d6b0b8-b8b0-4cfe-af22-50535d0525ab")
-    formData.append("subject", "New Quote Request from Opyra Infotech Website")
-    formData.append("from_name", "Opyra Infotech Quote Form")
+    // Get all selected services
+    const selectedServices: string[] = []
+    formData.getAll('services').forEach((service) => {
+      selectedServices.push(service.toString())
+    })
+
+    // Validate that at least one service is selected
+    if (selectedServices.length === 0) {
+      toast.error('Please select at least one service! ⚠️', {
+        description: 'You must choose at least one service for your quote request.'
+      })
+      setIsSubmitting(false)
+      return
+    }
+
+    // Create quote object
+    const quoteData = {
+      name: formData.get('name')?.toString() || '',
+      email: formData.get('email')?.toString() || '',
+      phone: formData.get('phone')?.toString() || '',
+      company: formData.get('company')?.toString() || '',
+      services: selectedServices,
+      budget: formData.get('budget')?.toString() || '',
+      timeline: formData.get('timeline')?.toString() || '',
+      description: formData.get('description')?.toString() || '',
+      additional_info: formData.get('additional_info')?.toString() || '',
+    }
+
+    // Validate all required fields
+    if (!quoteData.name || !quoteData.email || !quoteData.phone || 
+        !quoteData.budget || !quoteData.timeline || !quoteData.description) {
+      toast.error('Please fill all required fields! ⚠️', {
+        description: 'All fields marked with * are required.'
+      })
+      setIsSubmitting(false)
+      return
+    }
+
+    // Validate description length (minimum 50 characters)
+    if (quoteData.description.length < 50) {
+      toast.error('Description too short! ⚠️', {
+        description: 'Please provide at least 50 characters in your project description.'
+      })
+      setIsSubmitting(false)
+      return
+    }
 
     try {
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        body: formData
+      // Send to database
+      const response = await fetch('/api/quotes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quoteData)
       })
 
       const data = await response.json()
       
-      if (data.success) {
-        setResult("✅ Quote request sent successfully! We'll prepare your custom quote and get back to you within 24 hours.")
-        event.currentTarget.reset()
+      if (response.ok) {
+        // Success
+        toast.success('Quote request sent successfully! ✅', {
+          description: "We'll prepare your custom quote and get back to you within 24 hours."
+        })
+        
+        // Reset form using captured reference
+        form.reset()
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' })
       } else {
-        console.log("Error", data)
-        setResult("❌ Something went wrong. Please try again or contact us directly.")
+        // Error from server
+        console.error('Error:', data)
+        toast.error('Failed to submit quote request! ❌', {
+          description: data.error || 'Please try again or contact us directly.'
+        })
       }
     } catch (error) {
-      console.log("Error", error)
-      setResult("✅ Quote request received! We'll prepare your custom quote and get back to you soon.")
+      console.error('Error:', error)
+      toast.error('Something went wrong! ❌', {
+        description: 'Please check your internet connection and try again.'
+      })
     } finally {
       setIsSubmitting(false)
-      // Clear result message after 8 seconds
-      setTimeout(() => setResult(""), 8000)
     }
   }
 
@@ -136,6 +196,8 @@ export default function GetQuotePage() {
                       className="w-full px-4 py-3 border-2 border-brown-300 rounded-lg focus:ring-brown-500 focus:border-brown-500 creative-text transition-all duration-300"
                       required
                       placeholder="Your full name"
+                      minLength={3}
+                      maxLength={100}
                     />
                   </div>
                   
@@ -166,6 +228,8 @@ export default function GetQuotePage() {
                       className="w-full px-4 py-3 border-2 border-brown-300 rounded-lg focus:ring-brown-500 focus:border-brown-500 creative-text transition-all duration-300"
                       required
                       placeholder="+91 XXXXX XXXXX"
+                      pattern="[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}"
+                      title="Please enter a valid phone number"
                     />
                   </div>
                   
@@ -179,6 +243,7 @@ export default function GetQuotePage() {
                       name="company"
                       className="w-full px-4 py-3 border-2 border-brown-300 rounded-lg focus:ring-brown-500 focus:border-brown-500 creative-text transition-all duration-300"
                       placeholder="Your company (optional)"
+                      maxLength={150}
                     />
                   </div>
                 </div>
@@ -195,12 +260,13 @@ export default function GetQuotePage() {
                           type="checkbox"
                           name="services"
                           value={service}
-                          className="mr-3 text-brown-600 focus:ring-brown-500 rounded"
+                          className="mr-3 text-brown-600 focus:ring-brown-500 rounded w-4 h-4"
                         />
                         <span className="text-brown-700 font-medium">{service}</span>
                       </label>
                     ))}
                   </div>
+                  <p className="text-xs text-gray-500 mt-2">* Please select at least one service</p>
                 </div>
 
                 {/* Budget Range */}
@@ -254,7 +320,10 @@ export default function GetQuotePage() {
                     className="w-full px-4 py-3 border-2 border-brown-300 rounded-lg focus:ring-brown-500 focus:border-brown-500 creative-text resize-none transition-all duration-300"
                     required
                     placeholder="Please describe your project in detail. Include features, functionality, design preferences, target audience, and any specific requirements..."
+                    minLength={50}
+                    maxLength={2000}
                   ></textarea>
+                  <p className="text-xs text-gray-500 mt-2">* Minimum 50 characters required</p>
                 </div>
 
                 {/* Additional Information */}
@@ -268,6 +337,7 @@ export default function GetQuotePage() {
                     rows={4}
                     className="w-full px-4 py-3 border-2 border-brown-300 rounded-lg focus:ring-brown-500 focus:border-brown-500 creative-text resize-none transition-all duration-300"
                     placeholder="Any additional details, existing systems to integrate with, preferred technologies, examples of similar projects, etc."
+                    maxLength={1000}
                   ></textarea>
                 </div>
 
@@ -281,21 +351,18 @@ export default function GetQuotePage() {
                       : 'bg-brown-700 hover:bg-brown-800 hover:scale-105 text-white'
                   }`}
                 >
-                  {isSubmitting ? 'SENDING QUOTE REQUEST...' : 'GET MY CUSTOM QUOTE'}
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      SENDING QUOTE REQUEST...
+                    </span>
+                  ) : (
+                    'GET MY CUSTOM QUOTE'
+                  )}
                 </button>
-                
-                {/* Result message */}
-                {result && (
-                  <div className={`p-6 rounded-lg text-center font-bold ${
-                    result.includes('✅') 
-                      ? 'bg-green-100 text-green-800 border-2 border-green-300' 
-                      : result.includes('❌')
-                      ? 'bg-red-100 text-red-800 border-2 border-red-300'
-                      : 'bg-blue-100 text-blue-800 border-2 border-blue-300'
-                  }`}>
-                    {result}
-                  </div>
-                )}
               </form>
             </div>
           </div>
