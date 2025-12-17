@@ -3,41 +3,81 @@
 import { useState } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { toast } from 'sonner'
+
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  message: string;
+}
 
 export default function ContactPage() {
-  const [result, setResult] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    message: ''
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSubmitting(true)
-    setResult("Sending....")
     
-    const formData = new FormData(event.currentTarget)
-    formData.append("access_key", "22d6b0b8-b8b0-4cfe-af22-50535d0525ab")
-
     try {
-      const response = await fetch("https://api.web3forms.com/submit", {
+      const response = await fetch("/api/contacts", {
         method: "POST",
-        body: formData
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData)
       })
 
       const data = await response.json()
       
-      if (data.success) {
-        setResult("✅ Message sent successfully! We'll get back to you soon.")
-        event.currentTarget.reset()
+      // Check for success flag from API
+      if (response.ok && data.success === true) {
+        // Show success toast ONLY when database save is successful
+        toast.success('Message sent successfully! 🎉', {
+          description: "We'll get back to you soon.",
+          duration: 5000,
+        })
+        
+        // Reset form state
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          message: ''
+        })
       } else {
-        console.log("Error", data)
-        setResult("❌ Something went wrong. Please try again or contact us directly.")
+        // Show error toast when success is false
+        toast.error('Failed to send message ❌', {
+          description: data.message || data.error || 'Something went wrong. Please try again.',
+          duration: 5000,
+        })
       }
     } catch (error) {
-      console.log("Error", error)
-      setResult("✅ Message received! We'll get back to you soon.")
+      // Show error toast for network errors only
+      toast.error('Network error ❌', {
+        description: 'Please check your connection and try again.',
+        duration: 5000,
+      })
+      console.error("Error submitting form:", error)
     } finally {
       setIsSubmitting(false)
-      // Clear result message after 5 seconds
-      setTimeout(() => setResult(""), 5000)
     }
   }
 
@@ -136,34 +176,38 @@ export default function ContactPage() {
                 </div>
                 
                 <form onSubmit={onSubmit} className="space-y-6">
-                  {/* Hidden fields for Web3Forms */}
-                  <input type="hidden" name="subject" value="New Contact Form Submission from Opyra Infotech Website" />
-                  <input type="hidden" name="from_name" value="Opyra Infotech Contact Form" />
-                  
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-bold text-brown-800 mb-2 creative-text">
-                        Name *
+                        Name <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="text"
                         id="name"
                         name="name"
+                        value={formData.name}
+                        onChange={handleChange}
                         className="w-full px-4 py-3 border-2 border-brown-300 rounded-none focus:ring-brown-500 focus:border-brown-500 creative-text transition-all duration-300"
                         required
+                        placeholder="Your Name"
+                        disabled={isSubmitting}
                       />
                     </div>
                     
                     <div>
                       <label htmlFor="email" className="block text-sm font-bold text-brown-800 mb-2 creative-text">
-                        Email *
+                        Email <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="email"
                         id="email"
                         name="email"
+                        value={formData.email}
+                        onChange={handleChange}
                         className="w-full px-4 py-3 border-2 border-brown-300 rounded-none focus:ring-brown-500 focus:border-brown-500 creative-text transition-all duration-300"
                         required
+                        placeholder="your@email.com"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -171,13 +215,18 @@ export default function ContactPage() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="phone" className="block text-sm font-bold text-brown-800 mb-2 creative-text">
-                        Phone
+                        Phone <span className="text-red-600">*</span>
                       </label>
                       <input
                         type="tel"
                         id="phone"
                         name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
                         className="w-full px-4 py-3 border-2 border-brown-300 rounded-none focus:ring-brown-500 focus:border-brown-500 creative-text transition-all duration-300"
+                        required
+                        placeholder="+91 XXXXX XXXXX"
+                        disabled={isSubmitting}
                       />
                     </div>
                     
@@ -189,21 +238,29 @@ export default function ContactPage() {
                         type="text"
                         id="company"
                         name="company"
+                        value={formData.company}
+                        onChange={handleChange}
                         className="w-full px-4 py-3 border-2 border-brown-300 rounded-none focus:ring-brown-500 focus:border-brown-500 creative-text transition-all duration-300"
+                        placeholder="Your Company (Optional)"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
                   
                   <div>
                     <label htmlFor="message" className="block text-sm font-bold text-brown-800 mb-2 creative-text">
-                      Message *
+                      Message <span className="text-red-600">*</span>
                     </label>
                     <textarea
                       id="message"
                       name="message"
                       rows={5}
+                      value={formData.message}
+                      onChange={handleChange}
                       className="w-full px-4 py-3 border-2 border-brown-300 rounded-none focus:ring-brown-500 focus:border-brown-500 creative-text resize-none transition-all duration-300"
                       required
+                      placeholder="Tell us about your project..."
+                      disabled={isSubmitting}
                     ></textarea>
                   </div>
                   
@@ -217,28 +274,24 @@ export default function ContactPage() {
                         : 'bg-brown-700 hover:bg-brown-800 hover:scale-105 text-white'
                     }`}
                   >
-                    {isSubmitting ? 'SENDING...' : 'SEND MESSAGE'}
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        SENDING...
+                      </span>
+                    ) : (
+                      'SEND MESSAGE'
+                    )}
                   </button>
-                  
-                  {/* Result message */}
-                  {result && (
-                    <div className={`p-4 rounded-lg text-center font-bold ${
-                      result.includes('✅') 
-                        ? 'bg-green-100 text-green-800 border border-green-300' 
-                        : result.includes('❌')
-                        ? 'bg-red-100 text-red-800 border border-red-300'
-                        : 'bg-blue-100 text-blue-800 border border-blue-300'
-                    }`}>
-                      {result}
-                    </div>
-                  )}
                 </form>
               </div>
             </div>
           </div>
         </div>
       </section>
-
       <Footer />
     </main>
   )

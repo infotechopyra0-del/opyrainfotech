@@ -10,7 +10,6 @@ export default function PortfolioPage() {
       description: "Complete digital transformation with modern web application and CRM system integration.",
       image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       technologies: ["React", "Node.js", "MongoDB", "AWS"],
-      liveUrl: "#",
       features: ["Responsive Design", "API Integration", "Dashboard Analytics", "User Management"]
     },
     {
@@ -20,7 +19,6 @@ export default function PortfolioPage() {
       description: "Modern e-commerce platform with advanced product management and payment gateway integration.",
       image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       technologies: ["Next.js", "Stripe", "PostgreSQL", "Tailwind CSS"],
-      liveUrl: "#",
       features: ["Shopping Cart", "Payment Gateway", "Inventory Management", "Order Tracking"]
     },
     {
@@ -30,7 +28,6 @@ export default function PortfolioPage() {
       description: "Elegant website for restaurant chain with online reservation system and menu management.",
       image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       technologies: ["WordPress", "PHP", "MySQL", "JavaScript"],
-      liveUrl: "#",
       features: ["Online Reservations", "Menu Display", "Location Finder", "Customer Reviews"]
     },
     {
@@ -40,7 +37,6 @@ export default function PortfolioPage() {
       description: "Professional corporate website with portfolio showcase and client management system.",
       image: "https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       technologies: ["Vue.js", "Laravel", "MySQL", "Bootstrap"],
-      liveUrl: "#",
       features: ["Portfolio Gallery", "Contact Forms", "Team Profiles", "News & Updates"]
     },
     {
@@ -50,7 +46,6 @@ export default function PortfolioPage() {
       description: "Cross-platform mobile application for business process management and team collaboration.",
       image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       technologies: ["React Native", "Firebase", "Redux", "Node.js"],
-      liveUrl: "#",
       features: ["Real-time Chat", "Task Management", "File Sharing", "Push Notifications"]
     },
     {
@@ -60,7 +55,6 @@ export default function PortfolioPage() {
       description: "Analytics dashboard for digital marketing campaigns with real-time reporting and insights.",
       image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       technologies: ["Angular", "Python", "Django", "Chart.js"],
-      liveUrl: "#",
       features: ["Analytics Reports", "Campaign Tracking", "Data Visualization", "Export Tools"]
     }
   ]
@@ -127,17 +121,6 @@ export default function PortfolioPage() {
                     />
                     <div className="absolute inset-0 bg-brown-900 bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center">
                       <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-center">
-                        <a 
-                          href={project.liveUrl}
-                          className="bg-white text-brown-800 px-6 py-2 rounded-lg font-bold hover:bg-brown-100 transition-colors duration-300 inline-block mb-3"
-                        >
-                          View Project
-                        </a>
-                        <div className="text-white text-sm">
-                          <span className="bg-brown-600 px-2 py-1 rounded text-xs font-bold">
-                            {project.category}
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </div>

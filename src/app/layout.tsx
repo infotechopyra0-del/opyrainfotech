@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import WhatsAppChatbot from '@/components/WhatsAppChatbot'
+import { Toaster } from '@/components/ui/sonner'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -41,20 +42,26 @@ export const metadata: Metadata = {
   },
 }
 
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="google-site-verification" content="hVqshwlmr2wPLeKxrPBLsvbPdrlqGIyZ6QbGiXybRtk" />
       </head>
-      <body className="creative-text antialiased bg-white text-gray-900">
+      <body suppressHydrationWarning>
         {children}
+        <Toaster 
+          position="top-right"
+          richColors
+          closeButton
+          expand={false}
+        />
         <WhatsAppChatbot />
       </body>
     </html>
