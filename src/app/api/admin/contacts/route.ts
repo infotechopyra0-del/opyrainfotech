@@ -1,53 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
+import  connectDB  from '@/lib/mongodb';
 import Contact from '@/models/Contact';
-import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this';
+export const dynamic = 'force-dynamic';
 
-async function requireAuth(request: NextRequest) {
-  const token = request.cookies.get('admin-token')?.value;
-  if (!token) {
-    return false;
-  }
+export async function GET(request: NextRequest) {
   try {
-    jwt.verify(token, JWT_SECRET);
-    return true;
-  } catch (e) {
-    return false;
+    await connectDB();
+    
+    const contacts = await Contact.find({})
+      .sort({ createdAt: -1 })
+      .lean();
+    
+    
+    return NextResponse.json(contacts, { 
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { 
+        error: 'Failed to fetch contacts', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
+      },
+      { status: 500 }
+    );
   }
 }
 
-export async function GET(request: NextRequest) {
-  // protect admin GET
-  if (!(await requireAuth(request))) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
-
+// POST - Create new contact
+export async function POST(request: NextRequest) {
   try {
     await connectDB();
+    
+    const body = await request.json();
 
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-    const search = searchParams.get('search');
-
-    const query: any = {};
-    if (status && status !== 'all') {
-      query.status = status;
+    if (!body.name || !body.email || !body.phone || !body.message) {
+      return NextResponse.json(
+        { error: 'Missing required fields: name, email, phone, message' },
+        { status: 400 }
+      );
     }
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { company: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    const contacts = await Contact.find(query).sort({ createdAt: -1 }).lean();
-    return NextResponse.json(contacts, { status: 200 });
+    
+    const contact = await Contact.create({
+      name: body.name,
+      email: body.email,
+      phone: body.phone,
+      company: body.company || '',
+      message: body.message,
+      status: body.status || 'pending',
+    });
+    return NextResponse.json(contact, { status: 201 });
   } catch (error) {
-    console.error('Error fetching admin contacts:', error);
-    return NextResponse.json({ success: false, error: 'Failed to fetch contacts', message: (error instanceof Error) ? error.message : 'Unknown' }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: 'Failed to create contact', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
+      },
+      { status: 500 }
+    );
   }
 }

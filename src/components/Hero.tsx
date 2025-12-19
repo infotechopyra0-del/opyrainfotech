@@ -324,9 +324,7 @@ export default function Hero() {
               
               <div className="flex flex-col md:flex-row gap-4 justify-center">
                 <Link
-                  href="https://wa.me/916390057777?text=Hi, I would like to start a project with Opyra Infotech." 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                  href="/contact" 
                   className="group relative overflow-hidden bg-white text-brown-800 px-10 py-4 text-xl font-bold creative-text transform hover:scale-105 transition-all duration-300 shadow-xl inline-block text-center"
                 >
                   <span className="relative z-10">START YOUR PROJECT</span>

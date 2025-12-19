@@ -13,8 +13,6 @@ import {
   Edit,
   X,
   Save,
-  Code,
-  CheckCircle2,
   Upload,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -28,8 +26,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-// Project Type Definition
 interface Project {
   _id?: string;
   id?: string;
@@ -86,7 +82,6 @@ export default function AdminPortfolioPage() {
   });
   const [techInput, setTechInput] = useState("");
   const [featureInput, setFeatureInput] = useState("");
-  const [imageUploading, setImageUploading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const loadToastShownRef = React.useRef(false);
 
@@ -98,11 +93,10 @@ export default function AdminPortfolioPage() {
   const fetchProjects = async (opts: { forceToast?: boolean } = {}) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/projects");
+      const res = await fetch("/api/admin/projects", { credentials: 'include', headers: { 'Accept': 'application/json' } });
       if (!res.ok) throw new Error("Failed to fetch projects");
       const data: Project[] = await res.json();
       setProjects(data);
-      // Prevent duplicate load toasts (React strict mode may call useEffect twice in dev)
       if (!loadToastShownRef.current || opts.forceToast) {
         toast.success("Projects loaded successfully! 🎨");
         loadToastShownRef.current = true;
@@ -115,14 +109,13 @@ export default function AdminPortfolioPage() {
     }
   };
 
-  // Image Upload — proxy via server to avoid exposing presets/keys to client
   const uploadToCloudinary = async (
     file: any
   ): Promise<{ url: string; public_id: string }> => {
     const formData = new FormData();
     formData.append("image", file);
     try {
-      const res = await fetch("/api/upload", {
+      const res = await fetch("/api/admin/upload", {
         method: "POST",
         body: formData,
       });
@@ -175,26 +168,23 @@ export default function AdminPortfolioPage() {
         toast.info("Uploading image...");
         imageData = await uploadToCloudinary(imageFile);
 
-        // Validate Cloudinary response
         if (!imageData || !imageData.url || !imageData.public_id) {
           return toast.error("Failed to upload image to Cloudinary");
         }
       }
 
-      // Ensure image is in correct format
       if (typeof imageData === "string") {
         return toast.error("Please select and upload an image");
       }
 
       const isEdit = !!(currentProject._id || currentProject.id);
       const url = isEdit
-        ? `/api/projects/${currentProject._id ?? currentProject.id}`
-        : "/api/projects";
+        ? `/api/admin/projects/${currentProject._id ?? currentProject.id}`
+        : "/api/admin/projects";
       const method = isEdit ? "PUT" : "POST";
 
       const payload = {
         ...currentProject,
-        image: imageData, // This should be { url: string, public_id: string }
       };
 
       const res = await fetch(url, {
@@ -230,7 +220,7 @@ export default function AdminPortfolioPage() {
   const handleDeleteConfirm = async () => {
     if (!projectToDelete) return;
     try {
-      const res = await fetch(`/api/projects/${projectToDelete}`, {
+      const res = await fetch(`/api/admin/projects/${projectToDelete}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete project");

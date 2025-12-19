@@ -1,63 +1,71 @@
+"use client"
+import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import Link  from 'next/link';
+
+interface Project {
+  _id?: string;
+  id?: string;
+  title: string;
+  category: string;
+  description: string;
+  image: string | { url: string };
+  technologies: string[];
+  features: string[];
+  status?: 'completed' | 'in-progress' | 'on-hold';
+  featured?: boolean;
+  createdAt?: string;
+}
 
 export default function PortfolioPage() {
-  const projects = [
-    {
-      id: 1,
-      title: "TechCorp Solutions",
-      category: "Web Development",
-      description: "Complete digital transformation with modern web application and CRM system integration.",
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      technologies: ["React", "Node.js", "MongoDB", "AWS"],
-      features: ["Responsive Design", "API Integration", "Dashboard Analytics", "User Management"]
-    },
-    {
-      id: 2,
-      title: "Fashion Empire E-commerce",
-      category: "E-commerce",
-      description: "Modern e-commerce platform with advanced product management and payment gateway integration.",
-      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      technologies: ["Next.js", "Stripe", "PostgreSQL", "Tailwind CSS"],
-      features: ["Shopping Cart", "Payment Gateway", "Inventory Management", "Order Tracking"]
-    },
-    {
-      id: 3,
-      title: "Hospitality Group Website",
-      category: "Business Website",
-      description: "Elegant website for restaurant chain with online reservation system and menu management.",
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      technologies: ["WordPress", "PHP", "MySQL", "JavaScript"],
-      features: ["Online Reservations", "Menu Display", "Location Finder", "Customer Reviews"]
-    },
-    {
-      id: 4,
-      title: "Kumar Tech Ventures",
-      category: "Corporate Website",
-      description: "Professional corporate website with portfolio showcase and client management system.",
-      image: "https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      technologies: ["Vue.js", "Laravel", "MySQL", "Bootstrap"],
-      features: ["Portfolio Gallery", "Contact Forms", "Team Profiles", "News & Updates"]
-    },
-    {
-      id: 5,
-      title: "Sharma Innovations App",
-      category: "Mobile Application",
-      description: "Cross-platform mobile application for business process management and team collaboration.",
-      image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      technologies: ["React Native", "Firebase", "Redux", "Node.js"],
-      features: ["Real-time Chat", "Task Management", "File Sharing", "Push Notifications"]
-    },
-    {
-      id: 6,
-      title: "Digital Marketing Dashboard",
-      category: "Web Application",
-      description: "Analytics dashboard for digital marketing campaigns with real-time reporting and insights.",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      technologies: ["Angular", "Python", "Django", "Chart.js"],
-      features: ["Analytics Reports", "Campaign Tracking", "Data Visualization", "Export Tools"]
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [stats, setStats] = useState({
+    totalProjects: 0,
+    happyClients: 0,
+    rating: 4.9,
+    experience: 12
+  });
+
+  // Fetch projects from backend
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/projects?status=completed');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch projects');
+      }
+      
+      const data = await response.json();
+      setProjects(data);
+      
+      // Update stats
+      setStats(prev => ({
+        ...prev,
+        totalProjects: data.length,
+        happyClients: Math.floor(data.length * 0.8) // Estimate
+      }));
+    } catch (error) {
+
+    } finally {
+      setLoading(false);
     }
-  ]
+  };
+
+  // Get unique categories
+  const categories = ['all', ...new Set(projects.map(p => p.category))];
+
+  // Filter projects
+  const filteredProjects = selectedCategory === 'all' 
+    ? projects 
+    : projects.filter(p => p.category === selectedCategory);
 
   return (
     <main className="min-h-screen bg-white">
@@ -98,10 +106,29 @@ export default function PortfolioPage() {
             <h2 className="text-3xl md:text-4xl font-black text-brown-800 mb-8 creative-text">
               <span className="diagonal-text bg-brown-100 px-4 py-2">Featured Projects</span>
             </h2>
-            <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
               Explore our diverse range of successful projects spanning web development, 
               e-commerce, mobile applications, and digital marketing solutions.
             </p>
+
+            {/* Category Filter */}
+            {!loading && categories.length > 1 && (
+              <div className="flex flex-wrap justify-center gap-3 mb-8">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-6 py-2 rounded-full font-bold transition-all duration-300 ${
+                      selectedCategory === category
+                        ? 'bg-brown-700 text-white shadow-lg transform scale-105'
+                        : 'bg-brown-100 text-brown-700 hover:bg-brown-200'
+                    }`}
+                  >
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -109,64 +136,105 @@ export default function PortfolioPage() {
       {/* Projects Grid */}
       <section className="pb-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project, index) => (
-              <div key={project.id} className="group">
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-all duration-300 border border-brown-100">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-brown-900 bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-center">
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <div className="mb-3">
-                      <span className="text-brown-600 text-sm font-bold creative-text">
-                        {project.category}
-                      </span>
-                    </div>
-                    
-                    <h3 className="text-xl font-black text-brown-800 mb-3 creative-text">
-                      {project.title}
-                    </h3>
-                    
-                    <p className="text-gray-600 mb-4 leading-relaxed creative-text">
-                      {project.description}
-                    </p>
-                    
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold text-brown-700 mb-2">Key Features:</h4>
-                      <div className="grid grid-cols-2 gap-1">
-                        {project.features.map((feature, idx) => (
-                          <div key={idx} className="flex items-center text-xs text-gray-600">
-                            <span className="text-brown-600 mr-1">✓</span>
-                            {feature}
+          {loading ? (
+            <div className="text-center py-20">
+              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-brown-600 border-t-transparent mb-4"></div>
+              <p className="text-gray-600 font-bold">Loading projects...</p>
+            </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="text-6xl mb-4">📁</div>
+              <h3 className="text-2xl font-black text-gray-800 mb-2">No Projects Found</h3>
+              <p className="text-gray-600">
+                {selectedCategory === 'all' 
+                  ? 'No projects available yet.' 
+                  : `No projects in "${selectedCategory}" category.`}
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProjects.map((project) => {
+                const imageUrl = typeof project.image === 'string' 
+                  ? project.image 
+                  : project.image?.url || '/placeholder.jpg';
+                
+                return (
+                  <div key={project._id || project.id} className="group">
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-all duration-300 border border-brown-100">
+                      <div className="relative overflow-hidden">
+                        <img 
+                          src={imageUrl}
+                          alt={project.title}
+                          className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/placeholder.jpg';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-brown-900 bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-center">
+                            {project.featured && (
+                              <span className="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                ⭐ Featured
+                              </span>
+                            )}
                           </div>
-                        ))}
+                        </div>
+                      </div>
+                      
+                      <div className="p-6">
+                        <div className="mb-3">
+                          <span className="text-brown-600 text-sm font-bold creative-text">
+                            {project.category}
+                          </span>
+                        </div>
+                        
+                        <h3 className="text-xl font-black text-brown-800 mb-3 creative-text">
+                          {project.title}
+                        </h3>
+                        
+                        <p className="text-gray-600 mb-4 leading-relaxed creative-text line-clamp-3">
+                          {project.description}
+                        </p>
+                        
+                        {project.features && project.features.length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-bold text-brown-700 mb-2">Key Features:</h4>
+                            <div className="grid grid-cols-2 gap-1">
+                              {project.features.slice(0, 4).map((feature, idx) => (
+                                <div key={idx} className="flex items-center text-xs text-gray-600">
+                                  <span className="text-brown-600 mr-1">✓</span>
+                                  {feature}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {project.technologies && project.technologies.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {project.technologies.slice(0, 4).map((tech, idx) => (
+                              <span 
+                                key={idx}
+                                className="bg-brown-100 text-brown-800 px-2 py-1 rounded text-xs font-medium"
+                              >
+                                {tech}
+                              </span>
+                            ))}
+                            {project.technologies.length > 4 && (
+                              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium">
+                                +{project.technologies.length - 4} more
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {project.technologies.map((tech, idx) => (
-                        <span 
-                          key={idx}
-                          className="bg-brown-100 text-brown-800 px-2 py-1 rounded text-xs font-medium"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -183,7 +251,7 @@ export default function PortfolioPage() {
             <div className="text-center">
               <div className="bg-white p-8 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300">
                 <div className="text-4xl mb-4">🚀</div>
-                <div className="text-3xl font-black text-brown-800 mb-2">50+</div>
+                <div className="text-3xl font-black text-brown-800 mb-2">{stats.totalProjects}+</div>
                 <div className="text-brown-600 font-medium">Projects Delivered</div>
               </div>
             </div>
@@ -191,7 +259,7 @@ export default function PortfolioPage() {
             <div className="text-center">
               <div className="bg-white p-8 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300">
                 <div className="text-4xl mb-4">💼</div>
-                <div className="text-3xl font-black text-brown-800 mb-2">40+</div>
+                <div className="text-3xl font-black text-brown-800 mb-2">{stats.happyClients}+</div>
                 <div className="text-brown-600 font-medium">Happy Clients</div>
               </div>
             </div>
@@ -199,7 +267,7 @@ export default function PortfolioPage() {
             <div className="text-center">
               <div className="bg-white p-8 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300">
                 <div className="text-4xl mb-4">⭐</div>
-                <div className="text-3xl font-black text-brown-800 mb-2">4.9</div>
+                <div className="text-3xl font-black text-brown-800 mb-2">{stats.rating}</div>
                 <div className="text-brown-600 font-medium">Average Rating</div>
               </div>
             </div>
@@ -207,7 +275,7 @@ export default function PortfolioPage() {
             <div className="text-center">
               <div className="bg-white p-8 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300">
                 <div className="text-4xl mb-4">🏆</div>
-                <div className="text-3xl font-black text-brown-800 mb-2">12+</div>
+                <div className="text-3xl font-black text-brown-800 mb-2">{stats.experience}+</div>
                 <div className="text-brown-600 font-medium">Years Experience</div>
               </div>
             </div>
@@ -243,22 +311,20 @@ export default function PortfolioPage() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <a 
-                href="https://wa.me/916390057777?text=Hi, I saw your portfolio and would like to discuss my project requirements." 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <Link 
+                href="/services" 
                 className="group relative overflow-hidden bg-brown-700 text-white px-10 py-4 text-xl font-bold creative-text transform -rotate-1 hover:rotate-0 transition-all duration-300 shadow-2xl inline-block text-center"
               >
                 <span className="relative z-10">GET STARTED</span>
                 <div className="absolute inset-0 bg-brown-800 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-              </a>
+              </Link>
               
-              <a 
+              <Link 
                 href="/contact"
                 className="relative bg-transparent border-2 border-brown-700 text-brown-700 px-10 py-4 text-xl font-bold creative-text transform rotate-1 hover:rotate-0 transition-all duration-300 hover:bg-brown-700 hover:text-white inline-block text-center"
               >
                 CONTACT US
-              </a>
+              </Link>
             </div>
           </div>
         </div>

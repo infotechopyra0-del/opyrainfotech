@@ -13,7 +13,6 @@ export async function GET() {
     
     return NextResponse.json(projects, { status: 200 });
   } catch (error) {
-    console.error('Error fetching projects:', error);
     return NextResponse.json(
       { 
         success: false,
@@ -119,7 +118,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating project:', error);
     return NextResponse.json(
       { 
         success: false,

@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find admin
     const admin = await Admin.findOne({ email });
     
     if (!admin) {
@@ -29,7 +28,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check password
     const isPasswordValid = await admin.comparePassword(password);
     
     if (!isPasswordValid) {
@@ -39,7 +37,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create JWT token
     const token = jwt.sign(
       { 
         id: admin._id, 
@@ -50,7 +47,6 @@ export async function POST(request: NextRequest) {
       { expiresIn: '7d' }
     );
 
-    // Create response
     const response = NextResponse.json(
       { 
         message: 'Login successful',
@@ -78,7 +74,6 @@ export async function POST(request: NextRequest) {
     return response;
 
   } catch (error) {
-    console.error('Login error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

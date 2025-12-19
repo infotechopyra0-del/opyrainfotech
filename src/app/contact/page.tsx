@@ -75,7 +75,6 @@ export default function ContactPage() {
         description: 'Please check your connection and try again.',
         duration: 5000,
       })
-      console.error("Error submitting form:", error)
     } finally {
       setIsSubmitting(false)
     }

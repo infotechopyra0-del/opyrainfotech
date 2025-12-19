@@ -7,13 +7,11 @@ export async function POST() {
       { status: 200 }
     );
 
-    // Delete cookie
     response.cookies.delete('admin-token');
 
     return response;
 
   } catch (error) {
-    console.error('Logout error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
